@@ -15,7 +15,7 @@ _LOGGER = logging.getLogger(__name__)
 
 REQUIREMENTS = [
     'gtfs-realtime-bindings==0.0.5',
-    'protobuf==3.6.1'
+    'protobuf>=3.13.0'
 ]
 
 ATTR_STOP_ID = "Stop ID"
