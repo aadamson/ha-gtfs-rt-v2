@@ -124,7 +124,8 @@ class PublicTransportSensor(Entity):
                 attrs[ATTR_LATITUDE] = next_services[0].position.latitude
                 attrs[ATTR_LONGITUDE] = next_services[0].position.longitude
         if len(next_services) > 1:
-            attrs[ATTR_NEXT_UP] = next_services[1].arrival_time.strftime('%I:%M %p') if len(next_services) > 1 else '-'
+            for service_idx, service in enumerate(next_services[1:]):
+                attrs[f"{service_idx + 1}th following {self._service_type}"] = service.arrival_time.strftime('%I:%M %p')
         return attrs
 
     @property
