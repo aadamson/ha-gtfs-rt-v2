@@ -3,11 +3,13 @@
 This project contains a new sensor that provides real-time departure data for
 local transit systems that provide gtfs feeds.
 
-It is based on the excellent work that has been done previously by @zacs and @phardy.  Originally inspired by a desire to make the existing code work with realtime data for trains and buses provided by Translink in Queensland, Australia (who have unique route ids for each route/calendar combination) this version also contains a number of other improvements. 
+It is based on the excellent work that has been done previously by @mark1foley, @zacs and @phardy. In particular, this fork adds a "custom_headers" field to the
+sensor configuration that enables you to specify arbitrary headers to send along with the GTFS realtime request. MTA GTFS requires an "x-api-key" header that you
+can request [here](https://api.mta.info/#/AccessKey).
 
 ## Installation (HACS) - Recommended
 0. Have [HACS](https://hacs.xyz/) installed, this will allow you to easily update
-1. Add `https://github.com/mark1foley/ha-gtfs-rt-v2` as a [custom repository](https://hacs.xyz/docs/faq/custom_repositories/) as Type: Integration
+1. Add `https://github.com/aadamson/ha-gtfs-rt-v2` as a [custom repository](https://hacs.xyz/docs/faq/custom_repositories/) as Type: Integration
 2. Click install under "GTFS-Realtime", restart your instance.
 
 ## Installation (Manual)
@@ -26,31 +28,22 @@ Add the following to your `configuration.yaml` file:
 
 sensor:
   - platform: gtfs_rt
-    trip_update_url: 'https://gtfsrt.api.translink.com.au/api/realtime/SEQ/TripUpdates'
-    vehicle_position_url: 'https://gtfsrt.api.translink.com.au/api/realtime/SEQ/VehiclePositions'
-    route_delimiter: -
+    custom_headers: 'x-api-key=<my api key>'
+    trip_update_url: 'https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-ace'
     departures:
-    - name: Ferny Grove Train
-      route: BNFG
-      stopid: 600196
+    - name: Clinton-Washington C (MN bound)
+      route: C
+      stopid: A44N
       icon: mdi:train
       service_type: Train
-    - name: Uni Qld Ferry
-      route: NHAM
-      stopid: 319665
-      icon: mdi:ferry
-      service_type: Ferry
-    - name: 1 0 7 Bus
-      route: 107
-      stopid: 4843
-      icon: mdi:bus
-      service_type: Bus
 ```
 
 Configuration variables:
 
 - **trip_update_url** (*Required*): Provides route etas. See the **Finding Feeds** section at the bottom of the page for more details on how to find these
 - **vehicle_position_url** (*Optional*): Provides live position tracking on the home assistant map
+- **custom_headers** (*Optional*): If provided, this key will be interpreted as a semi-colon separated list of
+-                                  "key=value" header specifiers that will be sent along with GTFS-RT API requests.
 - **api_key** (*Optional*): If provided, this key will be sent with API requests in an "Authorization" header.
 - **route_delimiter** (*Optional*): If provided, the text in the feed's route id before the delimiter is used as the route id.  Useful if the provider incorporates calendar ids into their route ids.
 - **departures** (*Required*): A list of routes and departure locations to watch
