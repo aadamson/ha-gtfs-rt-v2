@@ -18,12 +18,13 @@ REQUIREMENTS = [
     'protobuf>=3.13.0'
 ]
 
-ATTR_STOP_ID = "Stop ID"
+ATTR_STOP_ID = "stop_id"
 ATTR_ROUTE = "Route"
-ATTR_DUE_IN = "Due in"
-ATTR_DUE_AT = "Due at"
-ATTR_NEXT_UP = "Next Service"
-ATTR_ICON = "Icon"
+ATTR_DUE_IN = "due_in"
+ATTR_DUE_AT = "due_at"
+ATTR_NEXT_UP = "next_service"
+ATTR_ICON = "icon"
+ATTR_FOLLOWING_SERVICES = "services"
 
 CONF_API_KEY = 'api_key'
 CONF_CUSTOM_HEADERS = 'custom_headers'
@@ -108,6 +109,19 @@ class PublicTransportSensor(Entity):
         next_services = self._get_next_services()
         return due_in_minutes(next_services[0].arrival_time) if len(next_services) > 0 else '-'
 
+    def _service_to_attr_dict(self, service):
+        d = {
+            ATTR_DUE_AT: service.arrival_time.strftime('%I:%M %p'),
+            ATTR_DUE_IN: due_in_minutes(service.arrival_time),
+        }
+        if service.position:
+            d = {
+                **d,
+                ATTR_LATITUDE: service.latitude,
+                ATTR_LONGITUDE: service.longitude,
+            }
+        return d
+
     @property
     def device_state_attributes(self):
         """Return the state attributes."""
@@ -116,16 +130,19 @@ class PublicTransportSensor(Entity):
         attrs = {
             ATTR_DUE_IN: self.state,
             ATTR_STOP_ID: self._stop,
-            ATTR_ROUTE: self._route
+            ATTR_ROUTE: self._route,
         }
         if len(next_services) > 0:
             attrs[ATTR_DUE_AT] = next_services[0].arrival_time.strftime('%I:%M %p') if len(next_services) > 0 else '-'
             if next_services[0].position:
                 attrs[ATTR_LATITUDE] = next_services[0].position.latitude
                 attrs[ATTR_LONGITUDE] = next_services[0].position.longitude
-        if len(next_services) > 1:
-            for service_idx, service in enumerate(next_services[1:]):
-                attrs[f"{service_idx + 1}th following {self._service_type}"] = service.arrival_time.strftime('%I:%M %p')
+
+        following_services = []
+        for service_idx, service in enumerate(next_services):
+            following_services.append(self._service_to_attr_dict(service))
+        attrs[ATTR_FOLLOWING_SERVICES] = following_services
+
         return attrs
 
     @property
